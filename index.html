@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Honda ECU OBD1 Pinout</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: #e0e0e0;
+      font-family: Arial, sans-serif;
+      margin: 20px auto;
+      max-width: 1200px;
+      padding: 20px;
+    }
+
+    .connector-container {
+      margin: 30px 0;
+      background-color: #2d2d2d;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .connector-title {
+      color: #4CAF50;
+      margin-bottom: 15px;
+      font-size: 1.2em;
+    }
+
+    .pin-table {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+      gap: 2px;
+      margin: 10px 0;
+    }
+
+    .pin-row {
+      display: contents;
+    }
+
+    .pin-cell {
+      background-color: #3d3d3d;
+      border: 1px solid #4d4d4d;
+      padding: 8px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pin-number {
+      font-size: 0.9em;
+      color: #fff;
+    }
+
+    .pin-details {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 12px;
+      border-radius: 4px;
+      width: 280px;
+      z-index: 2;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      font-size: 0.9em;
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+
+    .pin-details.active {
+      display: block;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .data-table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+      background-color: #2d2d2d;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px;
+      border: 1px solid #4d4d4d;
+      text-align: left;
+    }
+
+    .data-table th {
+      background-color: #3d3d3d;
+      color: #4CAF50;
+    }
+
+    .data-table tr:nth-child(even) {
+      background-color: #333;
+    }
+
+    @media (max-width: 768px) {
+      .pin-details {
+        width: 90%;
+        max-width: 300px;
+        position: fixed;
+        bottom: 20px;
+        top: auto;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .data-table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+
+    .signature {
+      text-align: center;
+      margin-top: 30px;
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="ecu-container"></div>
+  <div class="signature">byKazeev</div>
+
+  <script>
+    const ecuData = {
+      "ECU_Connectors": [
+        {
+          "Name": "OBD1 ECU A (26 Pin) C404 Civic, C410 Integra",
+          "Pins": [
+            {
+              "Pin": 1,
+              "WireColor": "BRN",
+              "TerminalName": "INJ1",
+              "Description": "Инжектор 1",
+              "Test": "Зажигание включено: 12V, Двигатель работает: (-) импульсы",
+              "Explanation": "Управляет подачей топлива через форсунку цилиндра 1. Критичен для работы двигателя."
+            },
+            {
+              "Pin": 2,
+              "WireColor": "YEL",
+              "TerminalName": "INJ4",
+              "Description": "Инжектор 4",
+              "Test": "Зажигание включено: 12V, Двигатель работает: (-) импульсы",
+              "Explanation": "Управляет подачей топлива через форсунку цилиндра 4. Критичен для работы двигателя."
+            },
+            {
+              "Pin": 3,
+              "WireColor": "RED",
+              "TerminalName": "INJ2",
+              "Description": "Инжектор 2",
+              "Test": "Зажигание включено: 12V, Двигатель работает: (-) импульсы",
+              "Explanation": "Управляет подачей топлива через форсунку цилиндра 2. Критичен для работы двигателя."
+            },
+            {
+              "Pin": 4,
+              "WireColor": "ORN/WHT (Civic) to GRN/YEL",
+              "TerminalName": "VTS",
+              "Description": "Соленоид VTEC",
+              "Test": "Низкие обороты: 0V, Высокие обороты: 12V",
+              "Explanation": "Активирует систему VTEC при достижении определенных оборотов двигателя, улучшая производительность."
+            },
+            {
+              "Pin": 5,
+              "WireColor": "LT BLU, BLU (Integra)",
+              "TerminalName": "INJ3",
+              "Description": "Инжектор 3",
+              "Test": "Зажигание включено: 12V, Двигатель работает: (-) импульсы",
+              "Explanation": "Управляет подачей топлива через форсунку цилиндра 3. Критичен для работы двигателя."
+            },
+            {
+              "Pin": 6,
+              "WireColor": "ORN/BLK",
+              "TerminalName": "PO2SHTC",
+              "Description": "Управление нагревателем основного датчика кислорода",
+              "Test": "Зажигание включено: 12V, Рабочая температура: 0V",
+              "Explanation": "Обеспечивает быстрый прогрев датчика кислорода для точных показаний при холодном пуске."
+            },
+            {
+              "Pin": 7,
+              "WireColor": "GRN/YEL (Civic), GRN/BLU (Integra)",
+              "TerminalName": "FLR",
+              "Description": "Топливное реле (Главное реле)",
+              "Test": "0V при активации, 12V в покое",
+              "Explanation": "Управляет питанием топливного насоса и системы впрыска. Критично для запуска двигателя."
+            },
+            {
+              "Pin": 8,
+              "WireColor": "GRN/YEL (Civic), GRN/BLU (Integra)",
+              "TerminalName": "FLR",
+              "Description": "Топливное реле (Главное реле)",
+              "Test": "Резервный",
+              "Explanation": "Дублирующий контакт для надежности работы главного реле."
+            },
+            {
+              "Pin": 9,
+              "WireColor": "GRN/WHT to BLU/YEL (Civic), BLK/BLU (Integra)",
+              "TerminalName": "IACV",
+              "Description": "Клапан регулировки холостого хода",
+              "Test": "Холостой ход: 6 - 10V",
+              "Explanation": "Регулирует подачу воздуха в обход дроссельной заслонки для поддержания стабильных оборотов холостого хода."
+            },
+            {
+              "Pin": 11,
+              "WireColor": "ORN/BLU",
+              "TerminalName": "EGR Control Solenoid",
+              "Description": "Соленоид управления EGR (VX)",
+              "Test": "Включен: ШИМ управление, Выключен: 0V",
+              "Explanation": "Управляет клапаном системы рециркуляции выхлопных газов для снижения выбросов NOx."
+            },
+            {
+              "Pin": 12,
+              "WireColor": "YEL/GRN (Civic) to GRN (Integra)",
+              "TerminalName": "FANC",
+              "Description": "Выключатель вентилятора радиатора",
+              "Test": "Вентилятор работает: 0V",
+              "Explanation": "Активирует вентилятор охлаждения радиатора при достижении определенной температуры."
+            },
+            {
+              "Pin": 13,
+              "WireColor": "GRN/ORN",
+              "TerminalName": "MIL",
+              "Description": "Лампа неисправностей (Check Engine)",
+              "Test": "Включена: 0V, Выключена: 12V",
+              "Explanation": "Сигнализирует о наличии ошибок в системе управления двигателем."
+            },
+            {
+              "Pin": 15,
+              "WireColor": "BLK/RED",
+              "TerminalName": "ACC",
+              "Description": "Муфта компрессора кондиционера",
+              "Test": "AC включен: 0V, AC выключен: 12V",
+              "Explanation": "Управляет включением компрессора кондиционера при запросе охлаждения."
+            },
+            {
+              "Pin": 16,
+              "WireColor": "WHT/YEL (Civic), WHT/GRN (Integra)",
+              "TerminalName": "ALTC",
+              "Description": "Управление генератором",
+              "Test": "12 - 0V",
+              "Explanation": "Регулирует выходное напряжение генератора в зависимости от нагрузки."
+            },
+            {
+              "Pin": 17,
+              "WireColor": "PNK/BLU (GSR B18C1)",
+              "TerminalName": "IAB SOL",
+              "Description": "Соленоид обхода воздуха",
+              "Test": "Ниже 5750 об/мин: 12V",
+              "Explanation": "Управляет системой изменения геометрии впуска для оптимизации потока воздуха."
+            },
+            {
+              "Pin": 19,
+              "WireColor": "WHT",
+              "TerminalName": "ICS",
+              "Description": "Соленоид управления впуском (H22A)",
+              "Test": "",
+              "Explanation": "Управляет дополнительными каналами впуска для улучшения наполнения цилиндров."
+            },
+            {
+              "Pin": 20,
+              "WireColor": "RED to RED/BLK to RED",
+              "TerminalName": "PCS",
+              "Description": "Соленоид управления продувкой",
+              "Test": "Температура охлаждающей жидкости > 154F: 12V при активации",
+              "Explanation": "Управляет продувкой адсорбера для сжигания паров топлива из бака."
+            },
+            {
+              "Pin": 21,
+              "WireColor": "RED/GRN (Civic) YEL/GRN (Integra)",
+              "TerminalName": "ICM",
+              "Description": "Модуль управления зажиганием",
+              "Test": "Ключ (III): 12V, Двигатель работает: импульсы",
+              "Explanation": "Обеспечивает управление моментом зажигания для оптимальной работы двигателя."
+            },
+            {
+              "Pin": 22,
+              "WireColor": "RED/GRN (Civic only)",
+              "TerminalName": "ICM",
+              "Description": "Модуль управления зажиганием (резервный)",
+              "Test": "Ключ (III): 12V, Двигатель работает: импульсы",
+              "Explanation": "Дублирующий сигнал для надежности системы зажигания."
+            },
+            {
+              "Pin": 23,
+              "WireColor": "BLK",
+              "TerminalName": "PG1 (Main Relay, VTP SW, G101)",
+              "Description": "Силовая земля 1",
+              "Test": "Менее 1V в любое время",
+              "Explanation": "Обеспечивает надежное заземление для силовых цепей ECU."
+            },
+            {
+              "Pin": 24,
+              "WireColor": "BLK",
+              "TerminalName": "PG2 (Main Relay, VTP SW, G101)",
+              "Description": "Силовая земля 2",
+              "Test": "Менее 1V в любое время",
+              "Explanation": "Дополнительное заземление для распределения нагрузки."
+            },
+            {
+              "Pin": 25,
+              "WireColor": "YEL/BLK",
+              "TerminalName": "IGP2",
+              "Description": "Силовая земля зажигания 2, Главное реле, Соединение, INJ",
+              "Test": "Ключ (II): 12V",
+              "Explanation": "Обеспечивает питание системы впрыска при включенном зажигании."
+            },
+            {
+              "Pin": 26,
+              "WireColor": "BLK/RED (Civic), BRN/BLK (Integra)",
+              "TerminalName": "LG1",
+              "Description": "Логическая земля 1",
+              "Test": "Менее 1V в любое время",
+              "Explanation": "Заземление для цифровых цепей управления ECU."
+            }
+          ]
+        },
+        {
+          "Name": "OBD1 ECU B (16 Pin) C405 Civic, C408 Integra",
+          "Pins": [
+            {
+              "Pin": 1,
+              "WireColor": "YEL/BLK",
+              "TerminalName": "IGP1",
+              "Description": "Питание зажигания 1, Главное реле, Соединение, INJ",
+              "Test": "Зажигание включено: 12V",
+              "Explanation": "Основной источник питания для ECU при включенном зажигании."
+            },
+            {
+              "Pin": 2,
+              "WireColor": "BRN/BLK",
+              "TerminalName": "LG2",
+              "Description": "Логическая земля 2",
+              "Test": "Менее 1V в любое время",
+              "Explanation": "Дополнительное заземление для цифровых цепей управления ECU."
+            },
+            {
+              "Pin": 5,
+              "WireColor": "BLU/RED",
+              "TerminalName": "AC Switch (ACS)",
+              "Description": "Датчик включения кондиционера",
+              "Test": "Выключатель AC включен: 0V, Выключен: 12V",
+              "Explanation": "Сигнализирует ECU о включении кондиционера для корректировки работы двигателя."
+            },
+            {
+              "Pin": 7,
+              "WireColor": "PNK/BLK",
+              "TerminalName": "CLSW",
+              "Description": "Выключатель сцепления (VX)",
+              "Test": "",
+              "Explanation": "Определяет положение педали сцепления для системы старт-стоп (если предусмотрено)."
+            },
+            {
+              "Pin": 8,
+              "WireColor": "BRN/RED (Civic), GRN (Integra)",
+              "TerminalName": "PSP SW",
+              "Description": "Выключатель давления ГУР",
+              "Test": "При повороте руля: 12V",
+              "Explanation": "Сигнализирует о нагрузке на гидроусилитель руля для корректировки оборотов холостого хода."
+            },
+            {
+              "Pin": 9,
+              "WireColor": "BLU/WHT",
+              "TerminalName": "Starter Switch Signal (STS)",
+              "Description": "Сигнал стартера, Главное реле",
+              "Test": "Прокрутка двигателя: 12V",
+              "Explanation": "Определяет момент запуска двигателя для корректировки работы системы впрыска."
+            },
+            {
+              "Pin": 10,
+              "WireColor": "YEL/BLU to YEL/WHT (Civic), ORN (Integra)",
+              "TerminalName": "VSS",
+              "Description": "Датчик скорости автомобиля",
+              "Test": "Зажигание включено, Вращение передних колес: 0 - 5V циклы",
+              "Explanation": "Передает информацию о скорости автомобиля для различных систем управления."
+            },
+            {
+              "Pin": 11,
+              "WireColor": "ORN",
+              "TerminalName": "CYP P",
+              "Description": "Положение цилиндров (Питание)",
+              "Test": "Двигатель работает: Импульсы",
+              "Explanation": "Сигнал от датчика положения распределительного вала для синхронизации впрыска."
+            },
+            {
+              "Pin": 12,
+              "WireColor": "WHT",
+              "TerminalName": "CYP M",
+              "Description": "Положение цилиндров (Земля)",
+              "Test": "",
+              "Explanation": "Заземление для датчика положения распределительного вала."
+            },
+            {
+              "Pin": 13,
+              "WireColor": "ORN/BLU",
+              "TerminalName": "TDC P",
+              "Description": "Верхняя мертвая точка (Питание)",
+              "Test": "Двигатель работает: Импульсы",
+              "Explanation": "Сигнал от датчика положения коленвала для определения ВМТ."
+            },
+            {
+              "Pin": 14,
+              "WireColor": "WHT/BLU",
+              "TerminalName": "TDC M",
+              "Description": "Верхняя мертвая точка (Земля)",
+              "Test": "",
+              "Explanation": "Заземление для датчика положения коленвала."
+            },
+            {
+              "Pin": 15,
+              "WireColor": "BLU/GRN",
+              "TerminalName": "CKP P",
+              "Description": "Положение коленвала (Питание)",
+              "Test": "Двигатель работает: Импульсы",
+              "Explanation": "Основной сигнал от датчика положения коленвала для синхронизации зажигания."
+            },
+            {
+              "Pin": 16,
+              "WireColor": "BLU/YEL",
+              "TerminalName": "CKP M",
+              "Description": "Положение коленвала (Земля)",
+              "Test": "",
+              "Explanation": "Заземление для датчика положения коленвала."
+            }
+          ]
+        },
+        {
+          "Name": "OBD1 ECU D (22 Pin) C405 Civic, C409 Integra",
+          "Pins": [
+            {
+              "Pin": 1,
+              "WireColor": "WHT/BLU",
+              "TerminalName": "VBU Voltage Backup",
+              "Description": "Резервное питание ECU",
+              "Test": "12V",
+              "Explanation": "Обеспечивает сохранение данных в памяти ECU при выключенном зажигании."
+            },
+            {
+              "Pin": 2,
+              "WireColor": "GRN/WHT",
+              "TerminalName": "BKSW",
+              "Description": "Сигнал выключателя тормоза",
+              "Test": "Тормоз нажат: 12V",
+              "Explanation": "Определяет нажатие педали тормоза для различных систем управления."
+            },
+            {
+              "Pin": 3,
+              "WireColor": "RED/BLU",
+              "TerminalName": "KS",
+              "Description": "Датчик детонации (GSR, Type R)",
+              "Test": "Детонация присутствует: импульсы",
+              "Explanation": "Определяет детонацию для корректировки угла опережения зажигания."
+            },
+            {
+              "Pin": 3,
+              "WireColor": "BLU/YEL to WHT (Civic VX)",
+              "TerminalName": "LAF LABEL",
+              "Description": "5-проводный датчик кислорода (VX)",
+              "Test": "O2 отключен, замкнут на D22: .3 - 4.9V",
+              "Explanation": "Широкополосный датчик кислорода для точного контроля состава смеси."
+            },
+            {
+              "Pin": 4,
+              "WireColor": "BRN (Civic), BRN/WHT (Integra)",
+              "TerminalName": "Service Check Signal (SCS)",
+              "Description": "Сигнал сервисной проверки",
+              "Test": "Замкнут: 0V, Не замкнут: 5V или напряжение батареи",
+              "Explanation": "Активирует диагностический режим при замыкании разъема."
+            },
+            {
+              "Pin": 6,
+              "WireColor": "ORN/BLU (Civic) to BLU/BLK",
+              "TerminalName": "VTP SW (USDM)",
+              "Description": "Выключатель давления VTEC",
+              "Test": "VTEC включен: 12V",
+              "Explanation": "Контролирует активацию системы VTEC по давлению масла."
+            },
+            {
+              "Pin": 7,
+              "WireColor": "LT BLU",
+              "TerminalName": "DLC",
+              "Description": "Диагностический разъем",
+              "Test": "",
+              "Explanation": "Обеспечивает подключение диагностического оборудования."
+            },
+            {
+              "Pin": 8,
+              "WireColor": "WHT/BLU (Civic VX)",
+              "TerminalName": "LAF VS+",
+              "Description": "5-проводный датчик O2 (VX)",
+              "Test": "Замкнут на D22: > .5V",
+              "Explanation": "Положительный сигнал датчика кислорода для контроля состава смеси."
+            },
+            {
+              "Pin": 9,
+              "WireColor": "PNK to BLU (Civic), WHT/RED (Integra)",
+              "TerminalName": "ALT F",
+              "Description": "Сигнал генератора FR",
+              "Test": "Двигатель работает: напряжение зависит от нагрузки",
+              "Explanation": "Обеспечивает обратную связь с генератором для регулировки напряжения."
+            },
+            {
+              "Pin": 10,
+              "WireColor": "GRN/RED",
+              "TerminalName": "ELD",
+              "Description": "Датчик электрической нагрузки",
+              "Test": "Габариты включены, Холостой ход: 2.5 - 3.5V, Фары включены: 1.5 - 2.5V",
+              "Explanation": "Определяет электрическую нагрузку для корректировки работы генератора и холостого хода."
+            },
+            {
+              "Pin": 11,
+              "WireColor": "LT GRN to RED/BLU (Civic), RED/BLK (Integra)",
+              "TerminalName": "TPS",
+              "Description": "Датчик положения дроссельной заслонки",
+              "Test": "Полностью открыта: 4.8V, Закрыта: .5V",
+              "Explanation": "Определяет положение дросселя для управления впрыском и зажиганием."
+            },
+            {
+              "Pin": 12,
+              "WireColor": "WHT/BLK",
+              "TerminalName": "EGRL (VX)",
+              "Description": "Положение клапана EGR",
+              "Test": "Холостой ход: 1.2V",
+              "Explanation": "Контролирует положение клапана рециркуляции выхлопных газов."
+            },
+            {
+              "Pin": 13,
+              "WireColor": "RED/WHT",
+              "TerminalName": "ECT",
+              "Description": "Температура охлаждающей жидкости",
+              "Test": ".1 - 4.8V",
+              "Explanation": "Обеспечивает информацию о температуре двигателя для управления системами."
+            },
+            {
+              "Pin": 14,
+              "WireColor": "WHT (Civic), WHT/RED (Integra)",
+              "TerminalName": "PHO2S",
+              "Description": "Сигнал основного датчика кислорода",
+              "Test": "Полный газ, Рабочая температура > .6V, Торможение двигателем > .4V",
+              "Explanation": "Контролирует содержание кислорода в выхлопе для корректировки смеси."
+            },
+            {
+              "Pin": 14,
+              "WireColor": "ORN/BLU (Civic VX)",
+              "TerminalName": "LAF IP+",
+              "Description": "5-проводный датчик O2 (VX)",
+              "Test": "",
+              "Explanation": "Положительный сигнал датчика кислорода для контроля состава смеси."
+            },
+            {
+              "Pin": 15,
+              "WireColor": "RED/YEL",
+              "TerminalName": "IAT",
+              "Description": "Температура впускного воздуха",
+              "Test": ".1 - 4.8V",
+              "Explanation": "Определяет температуру поступающего воздуха для корректировки смеси."
+            },
+            {
+              "Pin": 16,
+              "WireColor": "BLU/GRN to ORN (Civic VX)",
+              "TerminalName": "LAF IP-, VS-",
+              "Description": "5-проводный датчик O2 (VX)",
+              "Test": "Замкнут на D22: > .5V",
+              "Explanation": "Отрицательный сигнал датчика кислорода для контроля состава смеси."
+            },
+            {
+              "Pin": 17,
+              "WireColor": "WHT (Civic) or WHT/YEL (Integra)",
+              "TerminalName": "MAP",
+              "Description": "Датчик абсолютного давления",
+              "Test": "Зажигание включено: 3V, Холостой ход: ~1V",
+              "Explanation": "Определяет давление во впускном коллекторе для расчета нагрузки двигателя."
+            },
+            {
+              "Pin": 18,
+              "WireColor": "PNK/GRN to LT BLU",
+              "TerminalName": "SIL",
+              "Description": "Лампа переключения передач (CX, VX)",
+              "Test": "",
+              "Explanation": "Сигнализирует о необходимости переключения передачи для экономии топлива."
+            },
+            {
+              "Pin": 19,
+              "WireColor": "YEL/GRN (Civic) or YEL/WHT to YEL/RED (Integra)",
+              "TerminalName": "VCC1",
+              "Description": "Опорное напряжение датчиков 1 (MAP)",
+              "Test": "Зажигание включено: 5V",
+              "Explanation": "Обеспечивает питание для датчиков (MAP и др.)."
+            },
+            {
+              "Pin": 20,
+              "WireColor": "YEL/WHT (Civic), YEL/BLU (Integra)",
+              "TerminalName": "VCC2",
+              "Description": "Опорное напряжение датчиков 2 (TPS)",
+              "Test": "Зажигание включено: 5V",
+              "Explanation": "Обеспечивает питание для датчиков (TPS и др.)."
+            },
+            {
+              "Pin": 21,
+              "WireColor": "GRN/BLU (Civic) to GRN/WHT (Integra)",
+              "TerminalName": "SG1",
+              "Description": "Земля датчиков 1",
+              "Test": "Менее 1V в любое время",
+              "Explanation": "Обеспечивает заземление для точных измерений датчиков."
+            },
+            {
+              "Pin": 22,
+              "WireColor": "GRN/WHT (Civic), GRN/BLU (Integra)",
+              "TerminalName": "SG2",
+              "Description": "Земля датчиков 2",
+              "Test": "Менее 1V в любое время",
+              "Explanation": "Дополнительное заземление для датчиков."
+            }
+          ]
+        }
+      ]
+    };
+
+    function createConnector(connector) {
+      const container = document.createElement('div');
+      container.className = 'connector-container';
+
+      const title = document.createElement('h2');
+      title.className = 'connector-title';
+      title.textContent = connector.Name;
+      container.appendChild(title);
+
+      const pins = connector.Pins || [];
+      const maxPin = pins.length > 0 ? Math.max(...pins.map(p => p.Pin)) : 0;
+      const columns = Math.ceil(maxPin / 2) || 1;
+
+      const table = document.createElement('div');
+      table.className = 'pin-table';
+      table.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+
+      const topRow = document.createElement('div');
+      topRow.className = 'pin-row';
+      const bottomRow = document.createElement('div');
+      bottomRow.className = 'pin-row';
+
+      for (let i = 1; i <= maxPin; i++) {
+        const pinData = pins.find(p => p.Pin === i);
+        const cell = document.createElement('div');
+        cell.className = 'pin-cell';
+
+        if (pinData) {
+          cell.innerHTML = `
+                        <div class="pin-number">${i}</div>
+                        <div class="pin-details">
+                            <div class="close-btn">×</div>
+                            <strong>${pinData.TerminalName || ''}</strong><br>
+                            Wire: ${pinData.WireColor || ''}<br>
+                            Test: ${pinData.Test || ''}<br>
+                            Desc: ${pinData.Description || ''}<br>
+                            ${pinData.Explanation || ''}
+                        </div>
+                    `;
+        } else {
+          cell.innerHTML = '<div class="pin-number"></div>';
+        }
+
+        (i % 2 === 1 ? topRow : bottomRow).appendChild(cell);
+      }
+
+      table.appendChild(topRow);
+      table.appendChild(bottomRow);
+      container.appendChild(table);
+
+      if (pins.length > 0) {
+        const dataTable = document.createElement('table');
+        dataTable.className = 'data-table';
+        dataTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Пин</th>
+                            <th>Цвет</th>
+                            <th>Терминал</th>
+                            <th>Описание</th>
+                            <th>Проверка</th>
+                            <th>Объяснение</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pins.map(pin => `
+                            <tr>
+                                <td>${pin.Pin || ''}</td>
+                                <td>${pin.WireColor || ''}</td>
+                                <td>${pin.TerminalName || ''}</td>
+                                <td>${pin.Description || ''}</td>
+                                <td>${pin.Test || ''}</td>
+                                <td>${pin.Explanation || ''}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+        container.appendChild(dataTable);
+      }
+
+      return container;
+    }
+
+    function handlePinInteractions() {
+      let activeTooltip = null;
+
+      const showTooltip = (tooltip, pinCell) => {
+        if (!tooltip) return;
+        tooltip.classList.add('active');
+
+        if (window.innerWidth <= 768) {
+          tooltip.style.bottom = '20px';
+        }
+      };
+
+      const hideTooltip = (tooltip) => {
+        if (!tooltip) return;
+        tooltip.classList.remove('active');
+      };
+
+      document.addEventListener('click', (e) => {
+        const pinCell = e.target.closest('.pin-cell');
+        const closeBtn = e.target.closest('.close-btn');
+
+        if (closeBtn) {
+          const tooltip = closeBtn.closest('.pin-details');
+          hideTooltip(tooltip);
+          activeTooltip = null;
+          return;
+        }
+
+        if (pinCell) {
+          const tooltip = pinCell.querySelector('.pin-details');
+          if (!tooltip) return;
+
+          if (activeTooltip) hideTooltip(activeTooltip);
+
+          if (tooltip !== activeTooltip) {
+            showTooltip(tooltip, pinCell);
+            activeTooltip = tooltip;
+          } else {
+            hideTooltip(tooltip);
+            activeTooltip = null;
+          }
+          return;
+        }
+
+        if (activeTooltip) {
+          hideTooltip(activeTooltip);
+          activeTooltip = null;
+        }
+      });
+
+      document.addEventListener('mouseover', (e) => {
+        if (window.innerWidth > 768) {
+          const pinCell = e.target.closest('.pin-cell');
+          if (pinCell) {
+            const tooltip = pinCell.querySelector('.pin-details');
+            showTooltip(tooltip, pinCell);
+          }
+        }
+      });
+
+      document.addEventListener('mouseout', (e) => {
+        if (window.innerWidth > 768) {
+          const pinCell = e.target.closest('.pin-cell');
+          if (pinCell) {
+            const tooltip = pinCell.querySelector('.pin-details');
+            hideTooltip(tooltip);
+          }
+        }
+      });
+    }
+
+    function renderECU() {
+      const container = document.getElementById('ecu-container');
+      if (!container) return;
+
+      if (ecuData.ECU_Connectors) {
+        ecuData.ECU_Connectors.forEach(connector => {
+          if (connector && connector.Name) {
+            container.appendChild(createConnector(connector));
+          }
+        });
+        handlePinInteractions();
+      }
+    }
+
+    renderECU();
+  </script>
+</body>
+
+</html>
